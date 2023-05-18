@@ -33,12 +33,18 @@ fn main() {
         .run();
 }
 
-pub fn spawn_camera(mut commands: Commands) {
-    commands.spawn(Camera2dBundle { ..default() });
+pub fn spawn_camera(
+    mut commands: Commands,
+) {
+    commands.spawn(Camera2dBundle {
+        // Decently large positive Z value on the camera is neccesarry PLEASE DONT FORGET OR YOU WILL LOSE YOUR MIND AGAIN!!!!
+        transform: Transform::from_xyz(0.0, 0.0, 999.9),
+        ..default()
+    });
 }
 
 // Need to Re-Write this slightly using a window query, weird things are happening as I'm using somethings with the window for spawning, some are just random cords.
-pub fn spawn_paddle(mut commands: Commands) {
+pub fn spawn_paddle(mut commands: Commands, ) {
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {
@@ -46,7 +52,7 @@ pub fn spawn_paddle(mut commands: Commands) {
                 custom_size: Some(Vec2::new(95., 25.)),
                 ..default()
             }, // Create a variable for Paddle Y Value
-            transform: Transform::from_xyz(0.0, -225.0, 0.0),
+            transform: Transform::from_xyz(0.0, -300.0, 0.0),
             ..default()
         },
         Paddle {},
@@ -84,8 +90,8 @@ pub fn confine_paddle(
         let window = window_query.get_single().unwrap();
 
         let half_paddle_size = PADDLE_SIZE / 2.0;
-        let x_min = 0.0 + half_paddle_size;
-        let x_max = window.width() - half_paddle_size;
+        let x_min = -500.0;
+        let x_max = 500.0;
         // Y values not needed as paddle should only move on the X Axis
         // let y_min = 0.0 + half_paddle_size;
         // let y_max  = window.height() - half_paddle_size;
