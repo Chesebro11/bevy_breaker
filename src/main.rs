@@ -84,12 +84,9 @@ pub fn move_paddle(
 // Confine Paddle
 pub fn confine_paddle(
     mut paddle_query: Query<&mut Transform, With<Paddle>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     if let Ok(mut paddle_transform) = paddle_query.get_single_mut() {
-        let window = window_query.get_single().unwrap();
 
-        let half_paddle_size = PADDLE_SIZE / 2.0;
         let x_min = -500.0;
         let x_max = 500.0;
         // Y values not needed as paddle should only move on the X Axis
@@ -125,18 +122,24 @@ pub fn spawn_ball(
             ..default()
         },
         Ball {
-            direction: Vec2::new(random::<f32>(), random::<f32>()),
+            direction: Vec2::new(random::<f32>(), random::<f32>()).normalize(),
         },
     ));
 }
+// Will need to modify this function later, for now this is testing making the ball start moving.
+// Before this function can work I need to implement the time resource, I believe I'll need to create a time.deltatime somewhere.
+pub fn start_ball (
+mut ball_query: Query<(&mut Transform, &Ball)>, 
+time: Res<Time>,
+keyboard_input: Res<Input<KeyCode>>,) {
+    // When press Spacebar ball direction = new Vec3(Decide Direction);
+    // transform ball translation += direction * BALL_SPEED * time.delta_seconds
+}
 
-// Ball Movement
-// pub fn ball_movement(
-//     mut commands: Commands,
-//     mut ball_query: Query<&mut Transform, With<Ball>>,
-// )
-// {
+// Instead of doing a "Confine_Ball" function This update direction will work in a similar way, When reaching the edges of the screen change direction,
+// When making contact with paddle change direction
+// When making contact with a brick change direction
+pub fn update_ball_direction () {}
 
-// }
-
-// Confine Ball
+// This function will despawn the ball when falling BELOW the paddle's Y coordinate
+pub fn despawn_ball () {}
