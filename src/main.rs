@@ -14,7 +14,7 @@ pub struct Ball {
 // pub struct 
 
 // Paddle Variables
-pub const PADDLE_SIZE: f32 = 64.0;
+pub const PADDLE_SIZE: f32 = 50.0;
 pub const PADDLE_SPEED: f32 = 25.;
 pub const PADDLE_Y: f32 = -125.;
 
@@ -35,6 +35,7 @@ fn main() {
         .add_system(confine_paddle)
         .add_system(start_ball)
         .add_system(update_ball_direction)
+        .add_system(ball_hit_paddle)
         .run();
 }
 
@@ -152,8 +153,7 @@ time: Res<Time>,
 // Thinking that I might need to create seperate instances for each scenario where the ball might
 // Change direction..
 pub fn update_ball_direction (
-mut ball_query: Query<(&Transform, &mut Ball)>,
-mut paddle_query: Query<(Entity, &Transform), With<Paddle>>,
+mut ball_query: Query<(&Transform, &mut Ball,)>,
 )
 {
     if let Ok (mut ball_transform) = ball_query.get_single_mut() {
@@ -174,14 +174,24 @@ mut paddle_query: Query<(Entity, &Transform), With<Paddle>>,
                 ball.direction.y *= -1.0;
             }
         }
+        
+    }
+}
 
-        if let Ok((paddle_entity, paddle_transform)) = paddle_query.get_single_mut() {
-            for ball_transform in ball_query.iter() {
-                let distance = paddle_transform
-                    .translation
-                    .distance(ball_transform.translation);
-                let paddle_radius = PADDLE_SIZE /2.0;
-                let ball_radius = BALL_SIZE / 2.0;
+// I AM SO CLOSE TO GETTING this
+pub fn ball_hit_paddle (mut ball_query: Query<(&Transform, &mut Ball)>,
+    mut paddle_query: Query<(Entity, &Transform), With<Paddle>>,)
+{
+    if let Ok((paddle_entity, paddle_transform)) = paddle_query.get_single_mut() {
+        for (ball_transform, mut ball) in ball_query.iter_mut() {
+            let distance = paddle_transform
+                .translation
+                .distance(ball_transform.translation);
+            let paddle_radius = PADDLE_SIZE;
+            let ball_radius = BALL_SIZE / 2.0;
+            if distance < paddle_radius + ball_radius {
+                ball.direction.x *= -1.0;
+                ball.direction.y *= -1.0;
             }
         }
     }
