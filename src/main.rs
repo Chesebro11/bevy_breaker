@@ -151,14 +151,17 @@ time: Res<Time>,
 // When making contact with a brick change direction
 // Thinking that I might need to create seperate instances for each scenario where the ball might
 // Change direction..
-pub fn update_ball_direction (mut ball_query: Query<(&Transform, &mut Ball)>,)
+pub fn update_ball_direction (
+mut ball_query: Query<(&Transform, &mut Ball)>,
+mut paddle_query: Query<(Entity, &Transform), With<Paddle>>,
+)
 {
     if let Ok (mut ball_transform) = ball_query.get_single_mut() {
         // These values and the values in confine_paddle are subject to change.
         let x_min = -500.0;
         let x_max = 500.0;
-        let y_max = 300.0; // Not sure of this yet testing needed to verify
-        let y_min = -300.0; // I don't think I'll use a Y min here because y_min will determine despawning the ball
+        let y_max = 325.0; // Not sure of this yet testing needed to verify
+        let y_min = -325.0; // I don't think I'll use a Y min here because y_min will determine despawning the ball
 
         for (transform, mut ball) in ball_query.iter_mut() {
             let translation = transform.translation;
@@ -169,6 +172,16 @@ pub fn update_ball_direction (mut ball_query: Query<(&Transform, &mut Ball)>,)
 
             if translation.y > y_max || translation.y < y_min {
                 ball.direction.y *= -1.0;
+            }
+        }
+
+        if let Ok((paddle_entity, paddle_transform)) = paddle_query.get_single_mut() {
+            for ball_transform in ball_query.iter() {
+                let distance = paddle_transform
+                    .translation
+                    .distance(ball_transform.translation);
+                let paddle_radius = PADDLE_SIZE /2.0;
+                let ball_radius = BALL_SIZE / 2.0;
             }
         }
     }
