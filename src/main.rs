@@ -36,6 +36,7 @@ fn main() {
         .add_system(start_ball)
         .add_system(update_ball_direction)
         .add_system(ball_hit_paddle)
+        .add_system(ball_kill_event)
         .run();
 }
 
@@ -170,7 +171,7 @@ mut ball_query: Query<(&Transform, &mut Ball,)>,
                 ball.direction.x *= -1.0;
             }
 
-            if translation.y > y_max || translation.y < y_min {
+            if translation.y > y_max{
                 ball.direction.y *= -1.0;
             }
         }
@@ -198,4 +199,23 @@ pub fn ball_hit_paddle (mut ball_query: Query<(&Transform, &mut Ball)>,
 }
 
 // This function will despawn the ball when falling BELOW the paddle's Y coordinate
-pub fn despawn_ball () {}
+pub fn despawn_ball (mut commands: Commands, paddle_query: Query<Entity, With<Paddle>>) 
+{
+    if let Ok(paddle_entity) = paddle_query.get_single() {
+        commands.entity(paddle_entity).despawn();
+    }
+}
+
+pub fn ball_kill_event(mut commands: Commands, mut ball_query: Query<(Entity, &Transform), With<Ball>>) {
+    if let Ok((ball_entity, ball_transform)) = ball_query.get_single_mut() {
+        let y_min = -315.0;
+
+        for (entity, transform) in ball_query.iter_mut() {
+            let translation = transform.translation;
+
+            if translation.y < y_min {
+                commands.entity(ball_entity).despawn();
+            }
+        }
+    }
+}
