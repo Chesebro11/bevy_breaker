@@ -1,22 +1,18 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use bevy::window::PrimaryWindow;
 use rand::prelude::*;
 
+pub mod Paddle;
 
-#[derive(Component)]
-pub struct Paddle {}
+use Paddle::PaddlePlugin;
+
 #[derive(Component)]
 pub struct Ball {
     pub direction: Vec2,
 }
 
 // #[derive(Resource)]
-// pub struct 
+// pub struct
 
-// Paddle Variables
-pub const PADDLE_SIZE: f32 = 50.0;
-pub const PADDLE_SPEED: f32 = 25.;
-pub const PADDLE_Y: f32 = -125.;
 
 // Ball Variables
 // pub const BALL_COLOR
@@ -28,21 +24,17 @@ pub const BALL_SPEED: f32 = 200.0;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_startup_system(spawn_paddle)
+        .add_plugin(PaddlePlugin)
         .add_startup_system(spawn_camera)
         .add_startup_system(spawn_ball)
-        .add_system(move_paddle)
-        .add_system(confine_paddle)
         .add_system(start_ball)
         .add_system(update_ball_direction)
-        .add_system(ball_hit_paddle)
+        // .add_system(ball_hit_paddle)
         .add_system(ball_kill_event)
         .run();
 }
 
-pub fn spawn_camera(
-    mut commands: Commands,
-) {
+pub fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle {
         // Decently large positive Z value on the camera is neccesarry PLEASE DONT FORGET OR YOU WILL LOSE YOUR MIND AGAIN!!!!
         transform: Transform::from_xyz(0.0, 0.0, 999.9),
@@ -51,67 +43,7 @@ pub fn spawn_camera(
 }
 
 // Need to Re-Write this slightly using a window query, weird things are happening as I'm using somethings with the window for spawning, some are just random cords.
-pub fn spawn_paddle(mut commands: Commands, ) {
-    commands.spawn((
-        SpriteBundle {
-            sprite: Sprite {
-                color: Color::CYAN.into(),
-                custom_size: Some(Vec2::new(95., 25.)),
-                ..default()
-            }, // Create a variable for Paddle Y Value
-            transform: Transform::from_xyz(0.0, -300.0, 0.0),
-            ..default()
-        },
-        Paddle {},
-    ));
-}
 
-pub fn move_paddle(
-    keyboard_input: Res<Input<KeyCode>>,
-    // Grab paddle Component
-    mut paddle_query: Query<&mut Transform, With<Paddle>>,
-    // Time Resource
-    time: Res<Time>,
-) {
-    if let Ok(mut transform) = paddle_query.get_single_mut() {
-        let mut direction = Vec3::ZERO;
-
-        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            direction += Vec3::new(-1.0, 0.0, 0.0);
-        }
-
-        if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            direction += Vec3::new(1.0, 0.0, 0.0);
-        }
-
-        transform.translation += direction * PADDLE_SPEED + time.delta_seconds();
-    }
-}
-
-// Confine Paddle
-pub fn confine_paddle(
-    mut paddle_query: Query<&mut Transform, With<Paddle>>,
-) {
-    if let Ok(mut paddle_transform) = paddle_query.get_single_mut() {
-
-        let x_min = -500.0;
-        let x_max = 500.0;
-        // Y values not needed as paddle should only move on the X Axis
-        // let y_min = 0.0 + half_paddle_size;
-        // let y_max  = window.height() - half_paddle_size;
-
-        let mut translation = paddle_transform.translation;
-
-        // Limit Paddle on the X Axis
-        if translation.x < x_min {
-            translation.x = x_min;
-        } else if  translation.x > x_max {
-            translation.x = x_max;
-        }
-
-        paddle_transform.translation = translation;
-    }
-}
 
 // Spawn Ball
 pub fn spawn_ball(
@@ -135,10 +67,10 @@ pub fn spawn_ball(
 }
 // Will need to modify this function later, for now this is testing making the ball start moving.
 // Before this function can work I need to implement the time resource, I believe I'll need to create a time.deltatime somewhere.
-pub fn start_ball (
-mut ball_query: Query<(&mut Transform, &Ball)>, 
-time: Res<Time>,
-// keyboard_input: Res<Input<KeyCode>>,
+pub fn start_ball(
+    mut ball_query: Query<(&mut Transform, &Ball)>,
+    time: Res<Time>,
+    // keyboard_input: Res<Input<KeyCode>>,
 ) {
     // When press Spacebar ball direction = new Vec3(Decide Direction);
     // transform ball translation += direction * BALL_SPEED * time.delta_seconds
@@ -153,11 +85,8 @@ time: Res<Time>,
 // When making contact with a brick change direction
 // Thinking that I might need to create seperate instances for each scenario where the ball might
 // Change direction..
-pub fn update_ball_direction (
-mut ball_query: Query<(&Transform, &mut Ball,)>,
-)
-{
-    if let Ok (mut ball_transform) = ball_query.get_single_mut() {
+pub fn update_ball_direction(mut ball_query: Query<(&Transform, &mut Ball)>) {
+    if let Ok(mut ball_transform) = ball_query.get_single_mut() {
         // These values and the values in confine_paddle are subject to change.
         let x_min = -500.0;
         let x_max = 500.0;
@@ -171,42 +100,44 @@ mut ball_query: Query<(&Transform, &mut Ball,)>,
                 ball.direction.x *= -1.0;
             }
 
-            if translation.y > y_max{
+            if translation.y > y_max {
                 ball.direction.y *= -1.0;
             }
         }
-        
     }
 }
 
 // I AM SO CLOSE TO GETTING this
-pub fn ball_hit_paddle (mut ball_query: Query<(&Transform, &mut Ball)>,
-    mut paddle_query: Query<(Entity, &Transform), With<Paddle>>,)
-{
-    if let Ok((paddle_entity, paddle_transform)) = paddle_query.get_single_mut() {
-        for (ball_transform, mut ball) in ball_query.iter_mut() {
-            let distance = paddle_transform
-                .translation
-                .distance(ball_transform.translation);
-            let paddle_radius = PADDLE_SIZE;
-            let ball_radius = BALL_SIZE / 2.0;
-            if distance < paddle_radius + ball_radius {
-                ball.direction.x *= -1.0;
-                ball.direction.y *= -1.0;
-            }
-        }
-    }
-}
+// pub fn ball_hit_paddle(
+//     mut ball_query: Query<(&Transform, &mut Ball)>,
+//     mut paddle_query: Query<(Entity, &Transform), With<Paddle>>,
+// ) {
+//     if let Ok((paddle_entity, paddle_transform)) = paddle_query.get_single_mut() {
+//         for (ball_transform, mut ball) in ball_query.iter_mut() {
+//             let distance = paddle_transform
+//                 .translation
+//                 .distance(ball_transform.translation);
+//             let paddle_radius = PADDLE_SIZE;
+//             let ball_radius = BALL_SIZE / 2.0;
+//             if distance < paddle_radius + ball_radius {
+//                 ball.direction.x *= -1.0;
+//                 ball.direction.y *= -1.0;
+//             }
+//         }
+//     }
+// }
 
 // This function will despawn the ball when falling BELOW the paddle's Y coordinate
-pub fn despawn_ball (mut commands: Commands, paddle_query: Query<Entity, With<Paddle>>) 
-{
-    if let Ok(paddle_entity) = paddle_query.get_single() {
-        commands.entity(paddle_entity).despawn();
-    }
-}
+// pub fn despawn_ball(mut commands: Commands, paddle_query: Query<Entity, With<Paddle>>) {
+//     if let Ok(paddle_entity) = paddle_query.get_single() {
+//         commands.entity(paddle_entity).despawn();
+//     }
+// }
 
-pub fn ball_kill_event(mut commands: Commands, mut ball_query: Query<(Entity, &Transform), With<Ball>>) {
+pub fn ball_kill_event(
+    mut commands: Commands,
+    mut ball_query: Query<(Entity, &Transform), With<Ball>>,
+) {
     if let Ok((ball_entity, ball_transform)) = ball_query.get_single_mut() {
         let y_min = -315.0;
 
