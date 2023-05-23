@@ -20,7 +20,7 @@ pub fn spawn_ball(
 ) {
     commands.spawn((
         MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(25.).into()).into(),
+            mesh: meshes.add(shape::Circle::new(15.).into()).into(),
             material: materials.add(ColorMaterial::from(Color::RED)),
             transform: Transform::from_translation(BALL_STARTING_POSITION),
             ..default()

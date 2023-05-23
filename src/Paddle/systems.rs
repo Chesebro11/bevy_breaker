@@ -4,9 +4,8 @@ use super::components::Paddle;
 
 use crate::ball::components::Ball;
 use crate::ball::systems::BALL_SIZE;
-
 // Paddle Variables
-pub const PADDLE_SIZE: f32 = 50.0;
+pub const PADDLE_SIZE: f32 = 45.;
 pub const PADDLE_SPEED: f32 = 25.;
 pub const PADDLE_Y: f32 = -125.;
 
@@ -79,9 +78,9 @@ pub fn ball_hit_paddle(
             let distance = paddle_transform
                 .translation
                 .distance(ball_transform.translation);
-            let paddle_radius = PADDLE_SIZE;
             let ball_radius = BALL_SIZE / 2.0;
-            if distance < paddle_radius + ball_radius {
+            let paddle_girth = (95. + 25.) / 2.0;
+            if distance < ball_radius + paddle_girth {
                 ball.direction.x *= -1.0;
                 ball.direction.y *= -1.0;
             }

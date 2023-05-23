@@ -1,5 +1,5 @@
+use ball::systems::BALL_SIZE;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 
 pub mod paddle;
 pub mod ball;
@@ -7,9 +7,16 @@ pub mod ball;
 use paddle::PaddlePlugin;
 use ball::BallPlugin;
 
+use ball::components::Ball;
+
+#[derive(Component)]
+pub struct Brick{}
 // #[derive(Resource)]
 // pub struct
 
+pub const BRICK_WIDTH: f32 = 32.0;
+pub const BRICK_HEIGHT: f32 = 12.0;
+pub const BRICK_SPACING: f32 = 6.0;
 
 // pub const BIRCK_COUNT: u32 = 32;
 
@@ -20,6 +27,7 @@ fn main() {
         .add_plugin(BallPlugin)
         .add_startup_system(spawn_bricks)
         .add_startup_system(spawn_camera)
+        .add_system(ball_hit_brick)
         .run();
 }
 
@@ -37,9 +45,6 @@ fn spawn_bricks(
     mut commands: Commands,
     // brick_texture: Handle<ColorMaterial>,
 ) {
-    pub const BRICK_WIDTH: f32 = 32.0;
-    pub const BRICK_HEIGHT: f32 = 12.0;
-    pub const BRICK_SPACING: f32 = 6.0;
 
     pub const ARENA_WIDTH: f32 = 1000.0;
     // pub const ARENA_HEIGHT: f32 = 650.0;
@@ -70,6 +75,32 @@ fn spawn_bricks(
         });
     }
 }
+
+// I can feel that I'm so close to getting this but for some reason this is different than ball and paddle collison
+// Even though this system compiles without any issue within a running game there are no collisons between the ball
+// and the bricks.
+pub fn ball_hit_brick (
+mut commands: Commands,
+mut ball_query: Query<(&Transform, &mut Ball)>,
+mut brick_query: Query<(Entity, &Transform), With<Brick>>,
+ ) {
+    if let Ok((brick_entity, brick_transform)) = brick_query.get_single_mut() {
+        for (ball_transform, mut ball) in ball_query.iter_mut() {
+            let distance = brick_transform
+                .translation
+                .distance(ball_transform.translation);
+            let ball_radius = BALL_SIZE / 2.0;
+            let brick_girth = (BRICK_HEIGHT * BRICK_WIDTH) / 2.0;
+            if distance < ball_radius + brick_girth {
+                commands.entity(brick_entity).despawn();
+                ball.direction.x *= -1.0;
+                ball.direction.y *= -1.0;
+            }
+        }
+    } 
+ }
+
+
 // Commenting this out because as of right now it is unnecessary, might be used later when changing game states
 // pub fn despawn_ball(mut commands: Commands, paddle_query: Query<Entity, With<Paddle>>) {
 //     if let Ok(paddle_entity) = paddle_query.get_single() {
