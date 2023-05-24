@@ -1,5 +1,9 @@
 use ball::systems::BALL_SIZE;
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    sprite::collide_aabb::{collide, Collision},
+    sprite::MaterialMesh2dBundle,
+};
 
 pub mod paddle;
 pub mod ball;
@@ -11,6 +15,13 @@ use ball::components::Ball;
 
 #[derive(Component)]
 pub struct Brick{}
+
+#[derive(Component)]
+pub struct Collider;
+
+#[derive(Default)]
+pub struct CollisionEvent;
+
 // #[derive(Resource)]
 // pub struct
 
@@ -73,12 +84,13 @@ fn spawn_bricks(
             },
             ..Default::default()
         });
+        Brick{};
     }
 }
 
-// I took a look at the breakout.rs example in the bevy engine. Checkout how they use a build in bevy
-// system(*) collide_aabb::{collide, Collison} This should make programming collison stuff A LOT easier if
-// I can figure it out for myself
+// I can feel that I'm so close to getting this but for some reason this is different than ball and paddle collison
+// Even though this system compiles without any issue within a running game there are no collisons between the ball
+// and the bricks.
 pub fn ball_hit_brick (
 mut commands: Commands,
 mut ball_query: Query<(&Transform, &mut Ball)>,
@@ -86,12 +98,15 @@ mut brick_query: Query<(Entity, &Transform), With<Brick>>,
  ) {
     if let Ok((brick_entity, brick_transform)) = brick_query.get_single_mut() {
         for (ball_transform, mut ball) in ball_query.iter_mut() {
-            let distance = brick_transform
+            // let ball_distance = ball_transform
+            //     .translation
+            //     .distance(ball_transform.translation);
+            let brick_distance = brick_transform
                 .translation
-                .distance(ball_transform.translation);
+                .distance(brick_transform.translation);
             let ball_radius = BALL_SIZE / 2.0;
-            let brick_girth = (BRICK_HEIGHT * BRICK_WIDTH) / 2.0;
-            if distance < ball_radius + brick_girth {
+            let brick_girth = (BRICK_HEIGHT + BRICK_WIDTH) / 2.0;
+            if brick_distance < ball_radius + brick_girth {
                 commands.entity(brick_entity).despawn();
                 ball.direction.x *= -1.0;
                 ball.direction.y *= -1.0;
@@ -99,6 +114,30 @@ mut brick_query: Query<(Entity, &Transform), With<Brick>>,
         }
     } 
  }
+
+//  pub fn ball_hit_brick
+//  (
+//     mut commands: Commands,
+//     mut ball_query: Query<(&Transform, With<Ball>)>,
+//     mut brick_query: Query<(Entity, &Transform), With<Brick>>,
+//  )
+//  {
+//     if let Ok((ball_transform, ball_entity, )) = ball_query.get_single_mut() {
+//         for(mut brick, brick_transform) in brick_query.get_single_mut() {
+//             let distance = ball_transform
+//             .translation
+//             .distance(ball_transform.translation);
+
+//         let ball_radius = BALL_SIZE / 2.0;
+//         let brick_girth = (BRICK_HEIGHT + BRICK_WIDTH) / 2.0;
+//         if distance < ball_radius + brick_girth {
+//             commands.entity(brick_entity).despawn();
+//             ball.direction.x *= -1.0;
+//             ball.direction.y *= -1.0;
+//         }
+//         }
+//     }
+//  }
 
 
 // Commenting this out because as of right now it is unnecessary, might be used later when changing game states

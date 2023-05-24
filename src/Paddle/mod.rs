@@ -10,11 +10,9 @@ pub struct PaddlePlugin;
 
 impl Plugin for PaddlePlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_startup_system(spawn_paddle)
+        app.add_startup_system(spawn_paddle)
             .add_system(move_paddle)
             .add_system(confine_paddle)
             .add_system(ball_hit_paddle);
     }
 }
-
