@@ -76,9 +76,9 @@ fn spawn_bricks(
     }
 }
 
-// I can feel that I'm so close to getting this but for some reason this is different than ball and paddle collison
-// Even though this system compiles without any issue within a running game there are no collisons between the ball
-// and the bricks.
+// I took a look at the breakout.rs example in the bevy engine. Checkout how they use a build in bevy
+// system(*) collide_aabb::{collide, Collison} This should make programming collison stuff A LOT easier if
+// I can figure it out for myself
 pub fn ball_hit_brick (
 mut commands: Commands,
 mut ball_query: Query<(&Transform, &mut Ball)>,

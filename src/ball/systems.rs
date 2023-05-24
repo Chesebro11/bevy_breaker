@@ -56,7 +56,6 @@ pub fn update_ball_direction(mut ball_query: Query<(&Transform, &mut Ball)>) {
         let x_min = -500.0;
         let x_max = 500.0;
         let y_max = 325.0; // Not sure of this yet testing needed to verify
-        let y_min = -325.0; // I don't think I'll use a Y min here because y_min will determine despawning the ball
 
         for (transform, mut ball) in ball_query.iter_mut() {
             let translation = transform.translation;
